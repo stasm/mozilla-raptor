@@ -1,0 +1,117 @@
+#!/usr/bin/env node
+
+var program = require('commander');
+var raptor = require('..');
+var fs = require('fs');
+var path = require('path');
+var isFQDN = require('validator').isFQDN;
+var packageJson = require('../package.json');
+
+var environment = {
+  RAPTOR_CONFIG: ['config'],
+  ANDROID_SERIAL: ['serial'],
+  ADB_HOST: ['adbHost'],
+  ADB_PORT: ['adbPort'],
+  RAPTOR_HOST: ['host', 'localhost'],
+  RAPTOR_PORT: ['port', 8086],
+  RAPTOR_USERNAME: ['username', 'root'],
+  RAPTOR_PASSWORD: ['password', 'root'],
+  RAPTOR_DATABASE: ['database'],
+  RAPTOR_LOG: ['log', path.join(process.cwd(), 'raptor.log')]
+};
+var GAIA_ORIGIN = '.gaiamobile.org';
+
+var toInt = function(str) {
+  return parseInt(str, 10);
+};
+
+var toAbsolute = function(fileOrDirectory) {
+  if (!path.isAbsolute(fileOrDirectory)) {
+    fileOrDirectory = path.join(process.cwd(), fileOrDirectory);
+  }
+
+  return fileOrDirectory;
+};
+
+var toFQDN = function(appOrigin) {
+  if (!isFQDN(appOrigin)) {
+    appOrigin += GAIA_ORIGIN;
+  }
+
+  return appOrigin;
+};
+
+var execute = function(handler) {
+  return function(command, options) {
+    handler.call(null, command, mergeEnvironment(options));
+  };
+};
+
+var mergeEnvironment = function(options) {
+  Object
+    .keys(environment)
+    .forEach(function(key) {
+      var configKey = environment[key][0];
+      options[configKey] = process.env[key] || environment[key][1];
+    });
+
+  return options;
+};
+
+var findTest = function(nameOrPath) {
+  return Promise
+    .resolve()
+    .then(function() {
+      return require(path.join(__dirname, '..', 'tests', nameOrPath));
+    })
+    .catch(function() {
+      return require(toAbsolute(nameOrPath));
+    });
+};
+
+var runTest = function(nameOrPath, options) {
+  return findTest(nameOrPath)
+    .then(function(test) {
+      test(raptor, options);
+    })
+    .catch(function(err) {
+      console.error(err.stack || err);
+      process.exit(1);
+    });
+};
+
+program
+  .option('--config <path>, RAPTOR_CONFIG=<path>', 'specify additional Orangutan device configuration JSON', toAbsolute)
+  .option('--serial <serial>, ANDROID_SERIAL=<serial>', 'target a specific device for testing')
+  .option('--adb-host <host>, ADB_HOST=<host>', 'connect to a device on a remote host. tip: use with --adb-port')
+  .option('--adb-port <port>, ADB_PORT=<port>', 'set port for connecting to a device on a remote host. use with --adb-host')
+  .option('--host <host>, RAPTOR_HOST=<host>', 'host for reporting metrics to InfluxDB database')
+  .option('--port <port>, RAPTOR_PORT=<port>', 'port for reporting metrics to InfluxDB database')
+  .option('--username <username>, RAPTOR_USERNAME=<username>', 'username for reporting metrics to InfluxDB database')
+  .option('--password <password>, RAPTOR_PASSWORD=<password>', 'password for reporting metrics to InfluxDB database')
+  .option('--database <database>, RAPTOR_DATABASE=<database>', 'name of InfluxDB database for reporting metrics')
+  .option('--log <path>, RAPTOR_LOG=<path>', 'path to store historical test metrics', toAbsolute);
+
+program
+  .command('test <nameOrPath>')
+  .description('run a performance test by name or path location\n\t')
+  .option('--runs <runs>', 'number of times to run the test and aggregate results', toInt, 1)
+  .option('--app <appOrigin>', 'specify the origin or gaiamobile.org prefix of an application to test', toFQDN)
+  .option('--entry-point <entryPoint>', 'specify an application entry point other than the default')
+  .option('--timeout <milliseconds>', 'time to wait between runs for success to occur', toInt, 60000)
+  .option('--retries <times>', 'times to retry test or run if failure or timeout occurs', toInt, 1)
+  .option('--launch-delay <milliseconds>', 'time to wait between subsequent application launches', toInt, 10000)
+  .option('--time <epochMilliseconds>', 'override the start time and unique identifier for test runs', toInt, Date.now())
+  .action(execute(runTest));
+
+program.on('--help', function() {
+  console.log('  Named tests:\n');
+  console.log('    coldlaunch\t\t\tcold-launch lifecycle of an application from appLaunch to fullyLoaded');
+  console.log('    reboot\t\t\tdevice reboot lifecycle from device power on until System/Homescreen fullyLoaded');
+  console.log('    restart-b2g\t\t\trestart B2G lifecycle from B2G start until System/Homescreen fullyLoaded');
+  console.log('');
+});
+
+program.parse(process.argv);
+
+module.exports = program;

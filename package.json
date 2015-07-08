@@ -1,0 +1,58 @@
+{
+  "name": "@mozilla/raptor",
+  "version": "1.0.0-beta1",
+  "preferGlobal": true,
+  "description": "CLI tool for Firefox OS Gaia performance tests",
+  "keywords": [
+    "testing",
+    "firefox-os",
+    "gaia",
+    "performance",
+    "b2g",
+    "cli"
+  ],
+  "main": "index.js",
+  "author": {
+    "name": "Eli Perelman",
+    "email": "eli@eliperelman.com"
+  },
+  "bin": {
+    "raptor": "./bin/raptor"
+  },
+  "devDependencies": {},
+  "dependencies": {
+    "async": "^0.9.2",
+    "byline": "^4.2.1",
+    "cli-table": "^0.3.1",
+    "commander": "^2.8.1",
+    "debug": "^2.2.0",
+    "deepmerge": "^0.2.10",
+    "influx": "^3.0.0",
+    "marionette-apps": "^0.3.13",
+    "marionette-client": "^1.7.6",
+    "marionette-content-script": "^0.0.4",
+    "marionette-file-manager": "^0.0.4",
+    "marionette-helper": "^0.3.1",
+    "marionette-plugin-forms": "^0.0.4",
+    "marionette-settings-api": "^0.1.0",
+    "promise": "^6.1.0",
+    "sax": "^1.1.1",
+    "stats-lite": "^1.0.3",
+    "temp": "^0.8.3",
+    "unzip": "^0.1.11",
+    "validator": "^3.40.1",
+    "xregexp": "^2.0.0"
+  },
+  "scripts": {},
+  "maintainers": [
+    {
+      "name": "eliperelman",
+      "email": "eli@eliperelman.com"
+    },
+    {
+      "name": "rwood-moz",
+      "email": "rwood@mozilla.com"
+    }
+  ],
+  "directories": {}
+}
