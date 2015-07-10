@@ -62,17 +62,17 @@ var findTest = function(nameOrPath) {
   return Promise
     .resolve()
     .then(function() {
-      return require(path.join(__dirname, '..', 'tests', nameOrPath));
+      return require.resolve(path.join(__dirname, '..', 'tests', nameOrPath));
     })
     .catch(function() {
-      return require(toAbsolute(nameOrPath));
+      return require.resolve(toAbsolute(nameOrPath));
     });
 };
 
 var runTest = function(nameOrPath, options) {
   return findTest(nameOrPath)
-    .then(function(test) {
-      test(raptor, options);
+    .then(function(testPath) {
+      return raptor(testPath, options);
     })
     .catch(function(err) {
       console.error(err.stack || err);
@@ -81,6 +81,7 @@ var runTest = function(nameOrPath, options) {
 };
 
 program
+  .version(packageJson.version)
   .option('--config <path>, RAPTOR_CONFIG=<path>', 'specify additional Orangutan device configuration JSON', toAbsolute)
   .option('--serial <serial>, ANDROID_SERIAL=<serial>', 'target a specific device for testing')
   .option('--adb-host <host>, ADB_HOST=<host>', 'connect to a device on a remote host. tip: use with --adb-port')
