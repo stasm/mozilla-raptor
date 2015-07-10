@@ -1,66 +1,70 @@
 var Promise = require('promise');
-var async = require('async');
-var merge = require('deepmerge');
-var PhaseRunner = require('./lib/phases');
+var merge = require('./utils').merge;
+var phases = require('./lib/phases');
 
 // Each test run can generate many event handlers, so let's shut off Node's
 // too-many-listeners warning.
-process.setMaxListeners(0);
+process.setMaxListeners(Infinity);
+
+var factory = function() {
+  var instance = function(handler) {
+    instance._handler = handler;
+  };
+
+  instance.invoke = function() {
+    var args = arguments;
+
+    return Promise
+      .resolve()
+      .then(function() {
+        if (instance._handler) {
+          return instance._handler.apply(null, args);
+        }
+      });
+  };
+
+  return instance;
+};
+
+['setup', 'afterEach', 'teardown'].forEach(function(method) {
+  global[method] = factory();
+});
 
 /**
  * Handle any remaining logic after all suites have been completed
  */
-var complete = function(runner) {
-  runner.log('Testing complete');
+var complete = function(phase) {
+  phase.log('Testing complete');
 
-  if (!runner.device) {
+  if (!phase.device) {
     return Promise.resolve();
   }
 
-  return runner
+  return phase
     .reportTest()
     .then(function() {
-      return runner.device.log.stop();
+      return phase.device.log.stop();
+    })
+    .then(function() {
+      return global.teardown.invoke(phase);
     });
 };
 
 /**
  * Report error to the console and exit
  */
-var handleError = function(runner, err) {
-  runner.log('Aborted due to error:\n');
+var handleError = function(phase, err) {
+  if (phase) {
+    phase.log('Aborted due to error:\n');
+  }
+
   console.error(err.stack || err);
   process.exit(1);
 };
 
 /**
- * Factory to instantiate a test runner. Sets up error and ready notification.
- * @param {object} options options to pass through to suite
- * @param {function} callback
- * @returns {PhaseRunner}
- */
-var createRunner = function(options) {
-  return new Promise(function(resolve) {
-    currentRunner = new PhaseRunner(options);
-
-    currentRunner.once('ready', function() {
-      resolve(currentRunner);
-    });
-  });
-};
-
-/**
- * Register a customized runner.
- * @param {string} phase the phase name of the customized runner
- * @param {path} path the path to the runner file
- */
-var registerRunner = function(phase, path) {
-  PhaseRunner.registerRunner(phase, path);
-};
-
-/**
  *
- * @param {object} options PhaseRunner options, e.g. appPath, runs, retries
+ * @param {object} options phases options, e.g. appPath, runs, retries
  * @param {function} callback
  */
 var raptor = function(options) {
@@ -70,28 +74,34 @@ var raptor = function(options) {
     var phase = options.runner.phase;
     var path = options.runner.path;
 
-    PhaseRunner.registerRunner(phase, path);
+    phases.register(phase, path);
     options.phase = options.runner.phase;
   }
 
-  return new Promise(function(resolve, reject) {
-    var runner = new PhaseRunner(options);
+  require(options.nameOrPath);
 
-    runner
-      .on('error', function(err) {
-        complete(runner)
+  return global.setup
+    .invoke(options)
+    .then(function() {
+      var phase = phases.create(options);
+
+      phase.once('error', function(err) {
+        return complete(phase)
           .then(function() {
-            handleError(runner, err);
+            handleError(phase, err);
           });
-      })
-      .on('end', function() {
-        runner.logStats();
-        complete(runner);
-      })
-      .once('ready', function() {
-        resolve(runner);
       });
-  });
+
+      phase.once('end', function() {
+        phase.logStats();
+        return complete(phase);
+      });
+
+      phase.afterEach(global.afterEach.invoke);
+    })
+    .catch(function(err) {
+      handleError(null, err);
+    });
 };
 
 module.exports = raptor;

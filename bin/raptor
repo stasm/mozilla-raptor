@@ -1,117 +1,141 @@
 #!/usr/bin/env node
 
-var program = require('commander');
+var parser = require('nomnom');
 var raptor = require('..');
-var fs = require('fs');
+var utils = require('../utils');
 var path = require('path');
-var isFQDN = require('validator').isFQDN;
-var packageJson = require('../package.json');
 
-var environment = {
-  RAPTOR_CONFIG: ['config'],
-  ANDROID_SERIAL: ['serial'],
-  ADB_HOST: ['adbHost'],
-  ADB_PORT: ['adbPort'],
-  RAPTOR_HOST: ['host', 'localhost'],
-  RAPTOR_PORT: ['port', 8086],
-  RAPTOR_USERNAME: ['username', 'root'],
-  RAPTOR_PASSWORD: ['password', 'root'],
-  RAPTOR_DATABASE: ['database'],
-  RAPTOR_LOG: ['log', path.join(process.cwd(), 'raptor.log')]
-};
-var GAIA_ORIGIN = '.gaiamobile.org';
+var namedTests = [
+  '    coldlaunch\t\tcold-launch lifecycle of an application from appLaunch to fullyLoaded',
+  '    reboot\t\tdevice reboot lifecycle from device power on until System/Homescreen fullyLoaded',
+  '    restart-b2g\t\trestart B2G lifecycle from B2G start until System/Homescreen fullyLoaded'
+].join('\n');
 
-var toInt = function(str) {
-  return parseInt(str, 10);
-};
+var parent = parser
+  .script('raptor')
+  .option('version', {
+    flag: true,
+    abbr: 'v',
+    help: 'outputs the raptor cli tool version',
+    callback: function() {
+      return require('../package.json').version;
+    }
+  })
+  .option('config', {
+    metavar: '<path>',
+    help: 'specify additional Orangutan device configuration JSON. Environment: RAPTOR_CONFIG',
+    default: '',
+    transform: utils.compose(utils.toAbsolute, utils.fromEnvironment('RAPTOR_CONFIG'))
+  })
+  .option('serial', {
+    metavar: '<serial>',
+    help: 'target a specific device for testing. Environment: ANDROID_SERIAL',
+    default: '',
+    transform: utils.fromEnvironment('ANDROID_SERIAL')
+  })
+  .option('adbHost', {
+    full: 'adb-host',
+    metavar: '<host>',
+    help: 'connect to a device on a remote host. tip: use with --adb-port. Envrionment: ADB_HOST',
+    default: '',
+    transform: utils.fromEnvironment('ADB_HOST')
+  })
+  .option('adbPort', {
+    full: 'adb-port',
+    metavar: '<port>',
+    help: 'set port for connecting to a device on a remote host. use with --adb-host. Environment: ADB_PORT',
+    default: '',
+    transform: utils.fromEnvironment('ADB_PORT')
+  })
+  .option('host', {
+    metavar: '<host>',
+    help: 'host for reporting metrics to InfluxDB database. Environment: RAPTOR_HOST',
+    default: 'localhost',
+    transform: utils.fromEnvironment('RAPTOR_HOST')
+  })
+  .option('port', {
+    metavar: '<port>',
+    help: 'port for reporting metrics to InfluxDB database. Environment: RAPTOR_PORT',
+    default: 8086,
+    transform: utils.fromEnvironment('RAPTOR_PORT')
+  })
+  .option('username', {
+    metavar: '<username>',
+    help: 'username for reporting metrics to InfluxDB database. Environment: RAPTOR_USERNAME',
+    default: 'root',
+    transform: utils.fromEnvironment('RAPTOR_USERNAME')
+  })
+  .option('password', {
+    metavar: '<password>',
+    help: 'password for reporting metrics to InfluxDB database. Environment: RAPTOR_PASSWORD',
+    default: 'root',
+    transform: utils.fromEnvironment('RAPTOR_PASSWORD')
+  })
+  .option('database', {
+    metavar: '<database>',
+    help: 'name of InfluxDB database for reporting metrics. Environment: RAPTOR_DATABASE',
+    default: '',
+    transform: utils.fromEnvironment('RAPTOR_DATABASE')
+  })
+  .option('log', {
+    metavar: '<path>',
+    help: 'path to store historical test metrics. Environment: RAPTOR_LOG',
+    default: path.join(process.cwd(), 'raptor.log'),
+    transform: utils.compose(utils.toAbsolute, utils.fromEnvironment('RAPTOR_LOG'))
+  });
 
-var toAbsolute = function(fileOrDirectory) {
-  if (!path.isAbsolute(fileOrDirectory)) {
-    fileOrDirectory = path.join(process.cwd(), fileOrDirectory);
-  }
+parent
+  .command('test')
+  .help('Run a performance test by name or path location.')
+  .option('nameOrPath', {
+    metavar: '<nameOrPath>',
+    position: 1,
+    help: 'named test or path to a particular test to run. Named tests:\n' + namedTests + '\n',
+    required: true,
+    transform: utils.findTest
+  })
+  .option('runs', {
+    metavar: '<runs>',
+    help: 'number of times to run the test and aggregate results',
+    default: 1,
+    callback: utils.validate('time', utils.validator.isInt)
+  })
+  .option('app', {
+    metavar: '<appOrigin>',
+    help: 'specify the origin or gaiamobile.org prefix of an application to test',
+    transform: utils.toFQDN
+  })
+  .option('entryPoint', {
+    metavar: '<entryPoint>',
+    full: 'entry-point',
+    help: 'specify an application entry point other than the default'
+  })
+  .option('timeout', {
+    metavar: '<milliseconds>',
+    help: 'time to wait between runs for success to occur',
+    default: 60000,
+    callback: utils.validate('time', utils.validator.isInt)
+  })
+  .option('retries', {
+    metavar: '<times>',
+    help: 'times to retry test or run if failure or timeout occurs',
+    default: 1,
+    callback: utils.validate('time', utils.validator.isInt)
+  })
+  .option('launchDelay', {
+    metavar: '<milliseconds>',
+    help: 'time to wait between subsequent application launches',
+    default: 10000,
+    callback: utils.validate('time', utils.validator.isInt)
+  })
+  .option('time', {
+    metavar: '<epochMilliseconds>',
+    help: 'override the start time and unique identifier for test runs',
+    default: Date.now(),
+    callback: utils.validate('time', utils.validator.isInt)
+  })
+  .callback(function(options) {
+    raptor(options);
+  });
 
-  return fileOrDirectory;
-};
-
-var toFQDN = function(appOrigin) {
-  if (!isFQDN(appOrigin)) {
-    appOrigin += GAIA_ORIGIN;
-  }
-
-  return appOrigin;
-};
-
-var execute = function(handler) {
-  return function(command, options) {
-    handler.call(null, command, mergeEnvironment(options));
-  };
-};
-
-var mergeEnvironment = function(options) {
-  Object
-    .keys(environment)
-    .forEach(function(key) {
-      var configKey = environment[key][0];
-      options[configKey] = process.env[key] || environment[key][1];
-    });
-
-  return options;
-};
-
-var findTest = function(nameOrPath) {
-  return Promise
-    .resolve()
-    .then(function() {
-      return require(path.join(__dirname, '..', 'tests', nameOrPath));
-    })
-    .catch(function() {
-      return require(toAbsolute(nameOrPath));
-    });
-};
-
-var runTest = function(nameOrPath, options) {
-  return findTest(nameOrPath)
-    .then(function(test) {
-      test(raptor, options);
-    })
-    .catch(function(err) {
-      console.error(err.stack || err);
-      process.exit(1);
-    });
-};
-
-program
-  .option('--config <path>, RAPTOR_CONFIG=<path>', 'specify additional Orangutan device configuration JSON', toAbsolute)
-  .option('--serial <serial>, ANDROID_SERIAL=<serial>', 'target a specific device for testing')
-  .option('--adb-host <host>, ADB_HOST=<host>', 'connect to a device on a remote host. tip: use with --adb-port')
-  .option('--adb-port <port>, ADB_PORT=<port>', 'set port for connecting to a device on a remote host. use with --adb-host')
-  .option('--host <host>, RAPTOR_HOST=<host>', 'host for reporting metrics to InfluxDB database')
-  .option('--port <port>, RAPTOR_PORT=<port>', 'port for reporting metrics to InfluxDB database')
-  .option('--username <username>, RAPTOR_USERNAME=<username>', 'username for reporting metrics to InfluxDB database')
-  .option('--password <password>, RAPTOR_PASSWORD=<password>', 'password for reporting metrics to InfluxDB database')
-  .option('--database <database>, RAPTOR_DATABASE=<database>', 'name of InfluxDB database for reporting metrics')
-  .option('--log <path>, RAPTOR_LOG=<path>', 'path to store historical test metrics', toAbsolute);
-
-program
-  .command('test <nameOrPath>')
-  .description('run a performance test by name or path location\n\t')
-  .option('--runs <runs>', 'number of times to run the test and aggregate results', toInt, 1)
-  .option('--app <appOrigin>', 'specify the origin or gaiamobile.org prefix of an application to test', toFQDN)
-  .option('--entry-point <entryPoint>', 'specify an application entry point other than the default')
-  .option('--timeout <milliseconds>', 'time to wait between runs for success to occur', toInt, 60000)
-  .option('--retries <times>', 'times to retry test or run if failure or timeout occurs', toInt, 1)
-  .option('--launch-delay <milliseconds>', 'time to wait between subsequent application launches', toInt, 10000)
-  .option('--time <epochMilliseconds>', 'override the start time and unique identifier for test runs', toInt, Date.now())
-  .action(execute(runTest));
-
-program.on('--help', function() {
-  console.log('  Named tests:\n');
-  console.log('    coldlaunch\t\t\tcold-launch lifecycle of an application from appLaunch to fullyLoaded');
-  console.log('    reboot\t\t\tdevice reboot lifecycle from device power on until System/Homescreen fullyLoaded');
-  console.log('    restart-b2g\t\t\trestart B2G lifecycle from B2G start until System/Homescreen fullyLoaded');
-  console.log('');
-});
-
-program.parse(process.argv);
-
-module.exports = program;
+parser.parse();
