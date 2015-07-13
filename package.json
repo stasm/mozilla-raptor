@@ -1,6 +1,6 @@
 {
   "name": "@mozilla/raptor",
-  "version": "1.0.0-beta1",
+  "version": "1.0.0-beta2",
   "preferGlobal": true,
   "description": "CLI tool for Firefox OS Gaia performance tests",
   "keywords": [
@@ -44,6 +44,7 @@
     "xregexp": "^2.0.0"
   },
   "scripts": {},
+  "license": "Apache-2.0",
   "maintainers": [
     {
       "name": "eliperelman",
