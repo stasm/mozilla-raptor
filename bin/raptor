@@ -101,6 +101,7 @@ program
   .option('--timeout <milliseconds>', 'time to wait between runs for success to occur', toInt, 60000)
   .option('--retries <times>', 'times to retry test or run if failure or timeout occurs', toInt, 1)
   .option('--launch-delay <milliseconds>', 'time to wait between subsequent application launches', toInt, 10000)
+  .option('--memory-delay <milliseconds>', 'time to wait between application fully loaded and capturing memory', toInt, 0)
   .option('--time <epochMilliseconds>', 'override the start time and unique identifier for test runs', toInt, Date.now())
   .action(execute(runTest));
 
