@@ -114,19 +114,25 @@ parent
     metavar: '<milliseconds>',
     help: 'time to wait between runs for success to occur',
     default: 60000,
-    callback: utils.validate('time', utils.validator.isInt)
+    callback: utils.validate('timeout', utils.validator.isInt)
   })
   .option('retries', {
     metavar: '<times>',
     help: 'times to retry test or run if failure or timeout occurs',
     default: 1,
-    callback: utils.validate('time', utils.validator.isInt)
+    callback: utils.validate('retries', utils.validator.isInt)
   })
   .option('launchDelay', {
     metavar: '<milliseconds>',
     help: 'time to wait between subsequent application launches',
     default: 10000,
-    callback: utils.validate('time', utils.validator.isInt)
+    callback: utils.validate('launchDelay', utils.validator.isInt)
+  })
+  .option('memoryDelay', {
+    metavar: '<milliseconds>',
+    help: 'time to wait before capturing memory after application fully loaded',
+    default: 0,
+    callback: utils.validate('memoryDelay', utils.validator.isInt)
   })
   .option('time', {
     metavar: '<epochMilliseconds>',
