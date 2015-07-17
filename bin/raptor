@@ -82,6 +82,12 @@ var parent = parser
     help: 'path to store historical test metrics. Environment: RAPTOR_LOG',
     default: path.join(process.cwd(), 'raptor.log'),
     transform: utils.compose(utils.toAbsolute, utils.fromEnvironment('RAPTOR_LOG'))
+  })
+  .option('output', {
+    metavar: '<mode>',
+    help: 'output mode: normal or quiet. Environment: RAPTOR_OUTPUT',
+    default: 'normal',
+    transform: utils.fromEnvironment('RAPTOR_OUTPUT')
   });
 
 parent
