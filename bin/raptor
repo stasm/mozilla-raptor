@@ -47,6 +47,20 @@ var parent = parser
     default: '',
     transform: utils.fromEnvironment('ADB_PORT')
   })
+  .option('marionetteHost', {
+    full: 'marionette-host',
+    metavar: '<host>',
+    help: 'connect to marionette on a remote host. tip: use with --marionette-port. Envrionment: MARIONETTE_HOST',
+    default: 'localhost',
+    transform: utils.fromEnvironment('MARIONETTE_HOST')
+  })
+  .option('marionettePort', {
+    full: 'marionette-port',
+    metavar: '<port>',
+    help: 'set port for connecting to marionette on a remote host. tip: use with --marionette-host. Environment: MARIONETTE_PORT',
+    default: 2828,
+    transform: utils.fromEnvironment('MARIONETTE_PORT')
+  })
   .option('host', {
     metavar: '<host>',
     help: 'host for reporting metrics to InfluxDB database. Environment: RAPTOR_HOST',
