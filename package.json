@@ -19,6 +19,10 @@
   "bin": {
     "raptor": "./bin/raptor"
   },
+  "bugs": {
+    "url" : "https://bugzilla.mozilla.org/enter_bug.cgi?product=Firefox%20OS&component=Gaia%3A%3APerformanceTest",
+    "email" : "eli@mozilla.com"
+  },
   "devDependencies": {},
   "dependencies": {
     "byline": "^4.2.1",
@@ -43,7 +47,8 @@
     "validator": "^3.40.1",
     "xregexp": "^2.0.0"
   },
-  "scripts": {},
+  "directories": {},
+  "homepage": "https://developer.mozilla.org/en-US/Firefox_OS/Automated_testing/Raptor",
   "license": "Apache-2.0",
   "maintainers": [
     {
@@ -55,5 +60,6 @@
       "email": "rwood@mozilla.com"
     }
   ],
-  "directories": {}
+  "repository": "eliperelman/mozilla-raptor",
+  "scripts": {}
 }
