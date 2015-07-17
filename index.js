@@ -6,6 +6,10 @@ var phases = require('./lib/phases');
 // too-many-listeners warning.
 process.setMaxListeners(Infinity);
 
+/**
+ * Factory function to generate promisified-safe function invoker
+ * @returns {Function}
+ */
 var factory = function() {
   var instance = function(handler) {
     instance._handler = handler;
@@ -26,6 +30,9 @@ var factory = function() {
   return instance;
 };
 
+/**
+ * Define the following members as global functions for test-writing magic
+ */
 ['setup', 'afterEach', 'teardown'].forEach(function(method) {
   global[method] = factory();
 });
@@ -78,8 +85,15 @@ var raptor = function(options) {
     options.phase = options.runner.phase;
   }
 
+  // Here we officially require the test file
   require(options.nameOrPath);
 
+  /**
+   * 1. Call the test file's global `setup` function
+   * 2. Instantiate the phase
+   * 3. Bind handlers for errors or test end
+   * 4. Call the test file's global `afterEach` function between runs
+   */
   return global.setup
     .invoke(options)
     .then(function() {
@@ -104,4 +118,8 @@ var raptor = function(options) {
     });
 };
 
+/**
+ * Export raptor for usage in modules other than bin/raptor
+ * @type {Function}
+ */
 module.exports = raptor;
