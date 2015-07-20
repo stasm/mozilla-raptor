@@ -43,9 +43,10 @@ var parent = parser
   .option('adbPort', {
     full: 'adb-port',
     metavar: '<port>',
-    help: 'set port for connecting to a device on a remote host. use with --adb-host. Environment: ADB_PORT',
+    help: 'port for connecting to a device on a remote host. use with --adb-host. Environment: ADB_PORT',
     default: '',
-    transform: utils.fromEnvironment('ADB_PORT')
+    transform: utils.compose(utils.toInt, utils.fromEnvironment('ADB_PORT')),
+    callback: utils.validate('time', utils.validator.isInt)
   })
   .option('marionetteHost', {
     full: 'marionette-host',
@@ -57,9 +58,10 @@ var parent = parser
   .option('marionettePort', {
     full: 'marionette-port',
     metavar: '<port>',
-    help: 'set port for connecting to marionette on a remote host. tip: use with --marionette-host. Environment: MARIONETTE_PORT',
+    help: 'port for connecting to marionette on a remote host. tip: use with --marionette-host. Environment: MARIONETTE_PORT',
     default: 2828,
-    transform: utils.fromEnvironment('MARIONETTE_PORT')
+    transform: utils.compose(utils.toInt, utils.fromEnvironment('MARIONETTE_PORT')),
+    callback: utils.validate('time', utils.validator.isInt)
   })
   .option('host', {
     metavar: '<host>',
@@ -71,7 +73,8 @@ var parent = parser
     metavar: '<port>',
     help: 'port for reporting metrics to InfluxDB database. Environment: RAPTOR_PORT',
     default: 8086,
-    transform: utils.fromEnvironment('RAPTOR_PORT')
+    transform: utils.compose(utils.toInt, utils.fromEnvironment('RAPTOR_PORT')),
+    callback: utils.validate('time', utils.validator.isInt)
   })
   .option('username', {
     metavar: '<username>',
@@ -112,6 +115,7 @@ parent
     metavar: '<runs>',
     help: 'number of times to run the test and aggregate results',
     default: 1,
+    transform: utils.toInt,
     callback: utils.validate('time', utils.validator.isInt)
   })
   .option('app', {
@@ -128,30 +132,35 @@ parent
     metavar: '<milliseconds>',
     help: 'time to wait between runs for success to occur',
     default: 60000,
+    transform: utils.toInt,
     callback: utils.validate('timeout', utils.validator.isInt)
   })
   .option('retries', {
     metavar: '<times>',
     help: 'times to retry test or run if failure or timeout occurs',
     default: 1,
+    transform: utils.toInt,
     callback: utils.validate('retries', utils.validator.isInt)
   })
   .option('launchDelay', {
     metavar: '<milliseconds>',
     help: 'time to wait between subsequent application launches',
     default: 10000,
+    transform: utils.toInt,
     callback: utils.validate('launchDelay', utils.validator.isInt)
   })
   .option('memoryDelay', {
     metavar: '<milliseconds>',
     help: 'time to wait before capturing memory after application fully loaded',
     default: 0,
+    transform: utils.toInt,
     callback: utils.validate('memoryDelay', utils.validator.isInt)
   })
   .option('time', {
     metavar: '<epochMilliseconds>',
     help: 'override the start time and unique identifier for test runs',
     default: Date.now(),
+    transform: utils.toInt,
     callback: utils.validate('time', utils.validator.isInt)
   })
   .callback(function(options) {
