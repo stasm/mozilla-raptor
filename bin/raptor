@@ -46,7 +46,7 @@ var parent = parser
     help: 'port for connecting to a device on a remote host. use with --adb-host. Environment: ADB_PORT',
     default: '',
     transform: utils.compose(utils.toInt, utils.fromEnvironment('ADB_PORT')),
-    callback: utils.validate('time', utils.validator.isInt)
+    callback: utils.validate('adbPort', utils.validator.isInt)
   })
   .option('marionetteHost', {
     full: 'marionette-host',
@@ -61,7 +61,7 @@ var parent = parser
     help: 'port for connecting to marionette on a remote host. tip: use with --marionette-host. Environment: MARIONETTE_PORT',
     default: 2828,
     transform: utils.compose(utils.toInt, utils.fromEnvironment('MARIONETTE_PORT')),
-    callback: utils.validate('time', utils.validator.isInt)
+    callback: utils.validate('marionettePort', utils.validator.isInt)
   })
   .option('host', {
     metavar: '<host>',
@@ -74,7 +74,7 @@ var parent = parser
     help: 'port for reporting metrics to InfluxDB database. Environment: RAPTOR_PORT',
     default: 8086,
     transform: utils.compose(utils.toInt, utils.fromEnvironment('RAPTOR_PORT')),
-    callback: utils.validate('time', utils.validator.isInt)
+    callback: utils.validate('port', utils.validator.isInt)
   })
   .option('username', {
     metavar: '<username>',
@@ -116,7 +116,7 @@ parent
     help: 'number of times to run the test and aggregate results',
     default: 1,
     transform: utils.toInt,
-    callback: utils.validate('time', utils.validator.isInt)
+    callback: utils.validate('runs', utils.validator.isInt)
   })
   .option('app', {
     metavar: '<appOrigin>',
