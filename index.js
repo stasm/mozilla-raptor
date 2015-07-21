@@ -1,6 +1,7 @@
 var Promise = require('promise');
-var merge = require('./utils').merge;
+var utils = require('./utils');
 var phases = require('./lib/phases');
+var database = require('./lib/reporter/database');
 
 // Each test run can generate many event handlers, so let's shut off Node's
 // too-many-listeners warning.
@@ -121,5 +122,29 @@ var raptor = function(options) {
 /**
  * Export raptor for usage in modules other than bin/raptor
  * @type {Function}
+ * @returns {Promise}
  */
 module.exports = raptor;
+
+/**
+ * Submit a Raptor JSON log file to the database reporter
+ * @param {object} options
+ * @returns {Promise}
+ */
+module.exports.report = function(options) {
+  if (!options.database) {
+    return Promise
+      .reject(new Error('--database is required for data submission'));
+  }
+
+  var report = database(options);
+
+  return utils
+    .readLog(options.log)
+    .then(function(data) {
+      return Promise.all( data.map(report) );
+    })
+    .catch(function(err) {
+      handleError(null, err);
+    });
+};
