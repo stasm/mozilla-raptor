@@ -106,7 +106,7 @@ var findTest = module.exports.findTest = function(nameOrPath) {
 };
 
 /**
- *
+ * Read a Raptor-generated log file back into JSON
  * @param {string} log path to newline-separated JSON log file
  * @returns {Promise}
  */
