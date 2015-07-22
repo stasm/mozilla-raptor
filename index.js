@@ -141,7 +141,7 @@ module.exports.report = function(options) {
   return utils
     .readLog(options.log)
     .then(function(data) {
-      return Promise.all( data.map(report) );
+      return Promise.all(data.map(report));
     })
     .catch(function(err) {
       handleError(null, err);
