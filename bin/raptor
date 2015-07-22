@@ -173,4 +173,27 @@ parent
     raptor(options);
   });
 
+parent
+  .command('submit')
+  .help('Submit a Raptor JSON log to an InfluxDB database')
+  .option('log', {
+    metavar: '<path>',
+    position: 1,
+    help: 'path to Raptor-compatible, line-separated JSON log file',
+    required: true,
+    transform: utils.toAbsolute
+  })
+  .callback(function(options) {
+    raptor
+      .report(options)
+      .then(function() {
+        if (options.output === 'quiet') {
+          return;
+        }
+
+        console
+          .log('[Raptor: Database Submission] Success for: %s', options.log);
+      });
+  });
+
 parser.parse();
