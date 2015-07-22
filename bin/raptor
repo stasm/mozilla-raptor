@@ -180,10 +180,12 @@ parent
     raptor
       .report(options)
       .then(function() {
-        if (options.output !== 'quiet') {
-          console.log('[Raptor: Database Submission] Success for: %s',
-            options.log);
+        if (options.output === 'quiet') {
+          return;
         }
+
+        console
+          .log('[Raptor: Database Submission] Success for: %s', options.log);
       });
   });
 

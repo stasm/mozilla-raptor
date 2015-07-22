@@ -133,8 +133,7 @@ module.exports = raptor;
  */
 module.exports.report = function(options) {
   if (!options.database) {
-    return Promise
-      .reject(new Error('--database is required for data submission'));
+    handleError(null, new Error('--database is required for data submission'));
   }
 
   var report = database(options);
