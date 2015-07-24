@@ -50,15 +50,13 @@ var toInt = module.exports.toInt = function(str) {
  * @param {string} envName
  * @returns {Function}
  */
-var fromEnvironment = module.exports.fromEnvironment = function(envName) {
-  // If envName exists in the environment, return that value instead of the one
-  // provided to the function
+var fromEnvironment = module.exports.fromEnvironment = function(envName, defaultValue) {
   return function(value) {
-    if (process.env[envName]) {
-      value = process.env[envName];
+    if (value !== defaultValue) {
+      return value;
     }
 
-    return value;
+    return process.env[envName] || defaultValue;
   };
 };
 

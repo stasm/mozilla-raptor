@@ -1,111 +1,18 @@
 #!/usr/bin/env node
 
 var parser = require('nomnom');
+var path = require('path');
 var raptor = require('..');
 var utils = require('../utils');
-var path = require('path');
 
+var defaultLog = path.join(process.cwd(), 'raptor.log');
 var namedTests = [
   '    coldlaunch\t\tcold-launch lifecycle of an application from appLaunch to fullyLoaded',
   '    reboot\t\tdevice reboot lifecycle from device power on until System/Homescreen fullyLoaded',
   '    restart-b2g\t\trestart B2G lifecycle from B2G start until System/Homescreen fullyLoaded'
 ].join('\n');
 
-var parent = parser
-  .script('raptor')
-  .option('version', {
-    flag: true,
-    abbr: 'v',
-    help: 'outputs the raptor cli tool version',
-    callback: function() {
-      return require('../package.json').version;
-    }
-  })
-  .option('config', {
-    metavar: '<path>',
-    help: 'specify additional Orangutan device configuration JSON. Environment: RAPTOR_CONFIG',
-    default: '',
-    transform: utils.compose(utils.toAbsolute, utils.fromEnvironment('RAPTOR_CONFIG'))
-  })
-  .option('serial', {
-    metavar: '<serial>',
-    help: 'target a specific device for testing. Environment: ANDROID_SERIAL',
-    default: '',
-    transform: utils.fromEnvironment('ANDROID_SERIAL')
-  })
-  .option('adbHost', {
-    full: 'adb-host',
-    metavar: '<host>',
-    help: 'connect to a device on a remote host. tip: use with --adb-port. Envrionment: ADB_HOST',
-    default: '',
-    transform: utils.fromEnvironment('ADB_HOST')
-  })
-  .option('adbPort', {
-    full: 'adb-port',
-    metavar: '<port>',
-    help: 'port for connecting to a device on a remote host. use with --adb-host. Environment: ADB_PORT',
-    default: '',
-    transform: utils.compose(utils.toInt, utils.fromEnvironment('ADB_PORT')),
-    callback: utils.validate('adbPort', utils.validator.isInt)
-  })
-  .option('marionetteHost', {
-    full: 'marionette-host',
-    metavar: '<host>',
-    help: 'connect to marionette on a remote host. tip: use with --marionette-port. Envrionment: MARIONETTE_HOST',
-    default: 'localhost',
-    transform: utils.fromEnvironment('MARIONETTE_HOST')
-  })
-  .option('marionettePort', {
-    full: 'marionette-port',
-    metavar: '<port>',
-    help: 'port for connecting to marionette on a remote host. tip: use with --marionette-host. Environment: MARIONETTE_PORT',
-    default: 2828,
-    transform: utils.compose(utils.toInt, utils.fromEnvironment('MARIONETTE_PORT')),
-    callback: utils.validate('marionettePort', utils.validator.isInt)
-  })
-  .option('host', {
-    metavar: '<host>',
-    help: 'host for reporting metrics to InfluxDB database. Environment: RAPTOR_HOST',
-    default: 'localhost',
-    transform: utils.fromEnvironment('RAPTOR_HOST')
-  })
-  .option('port', {
-    metavar: '<port>',
-    help: 'port for reporting metrics to InfluxDB database. Environment: RAPTOR_PORT',
-    default: 8086,
-    transform: utils.compose(utils.toInt, utils.fromEnvironment('RAPTOR_PORT')),
-    callback: utils.validate('port', utils.validator.isInt)
-  })
-  .option('username', {
-    metavar: '<username>',
-    help: 'username for reporting metrics to InfluxDB database. Environment: RAPTOR_USERNAME',
-    default: 'root',
-    transform: utils.fromEnvironment('RAPTOR_USERNAME')
-  })
-  .option('password', {
-    metavar: '<password>',
-    help: 'password for reporting metrics to InfluxDB database. Environment: RAPTOR_PASSWORD',
-    default: 'root',
-    transform: utils.fromEnvironment('RAPTOR_PASSWORD')
-  })
-  .option('database', {
-    metavar: '<database>',
-    help: 'name of InfluxDB database for reporting metrics. Environment: RAPTOR_DATABASE',
-    default: '',
-    transform: utils.fromEnvironment('RAPTOR_DATABASE')
-  })
-  .option('log', {
-    metavar: '<path>',
-    help: 'path to store historical test metrics. Environment: RAPTOR_LOG',
-    default: path.join(process.cwd(), 'raptor.log'),
-    transform: utils.compose(utils.toAbsolute, utils.fromEnvironment('RAPTOR_LOG'))
-  })
-  .option('output', {
-    metavar: '<mode>',
-    help: 'output mode: normal or quiet. Environment: RAPTOR_OUTPUT',
-    default: 'normal',
-    transform: utils.fromEnvironment('RAPTOR_OUTPUT')
-  });
+var parent = parser.script('raptor');
 
 parent
   .command('test')
@@ -191,9 +98,104 @@ parent
           return;
         }
 
-        console
-          .log('[Raptor: Database Submission] Success for: %s', options.log);
+        console.log('[Database Submission] Success for: %s', options.log);
       });
+  });
+
+parent
+  .option('version', {
+    flag: true,
+    abbr: 'v',
+    help: 'outputs the raptor cli tool version',
+    callback: function() {
+      console.log(require('../package.json').version);
+      process.exit(0);
+    }
+  })
+  .option('config', {
+    metavar: '<path>',
+    help: 'specify additional Orangutan device configuration JSON. Environment: RAPTOR_CONFIG',
+    default: '',
+    transform: utils.compose(utils.toAbsolute, utils.fromEnvironment('RAPTOR_CONFIG', ''))
+  })
+  .option('serial', {
+    metavar: '<serial>',
+    help: 'target a specific device for testing. Environment: ANDROID_SERIAL',
+    default: '',
+    transform: utils.fromEnvironment('ANDROID_SERIAL', '')
+  })
+  .option('adbHost', {
+    full: 'adb-host',
+    metavar: '<host>',
+    help: 'connect to a device on a remote host. tip: use with --adb-port. Envrionment: ADB_HOST',
+    default: '',
+    transform: utils.fromEnvironment('ADB_HOST', '')
+  })
+  .option('adbPort', {
+    full: 'adb-port',
+    metavar: '<port>',
+    help: 'port for connecting to a device on a remote host. use with --adb-host. Environment: ADB_PORT',
+    default: '',
+    transform: utils.compose(utils.toInt, utils.fromEnvironment('ADB_PORT', '')),
+    callback: utils.validate('adbPort', utils.validator.isInt)
+  })
+  .option('marionetteHost', {
+    full: 'marionette-host',
+    metavar: '<host>',
+    help: 'connect to marionette on a remote host. tip: use with --marionette-port. Envrionment: MARIONETTE_HOST',
+    default: 'localhost',
+    transform: utils.fromEnvironment('MARIONETTE_HOST', 'localhost')
+  })
+  .option('marionettePort', {
+    full: 'marionette-port',
+    metavar: '<port>',
+    help: 'port for connecting to marionette on a remote host. tip: use with --marionette-host. Environment: MARIONETTE_PORT',
+    default: 2828,
+    transform: utils.compose(utils.toInt, utils.fromEnvironment('MARIONETTE_PORT', 2828)),
+    callback: utils.validate('marionettePort', utils.validator.isInt)
+  })
+  .option('host', {
+    metavar: '<host>',
+    help: 'host for reporting metrics to InfluxDB database. Environment: RAPTOR_HOST',
+    default: 'localhost',
+    transform: utils.fromEnvironment('RAPTOR_HOST', 'localhost')
+  })
+  .option('port', {
+    metavar: '<port>',
+    help: 'port for reporting metrics to InfluxDB database. Environment: RAPTOR_PORT',
+    default: 8086,
+    transform: utils.compose(utils.toInt, utils.fromEnvironment('RAPTOR_PORT', 8086)),
+    callback: utils.validate('port', utils.validator.isInt)
+  })
+  .option('username', {
+    metavar: '<username>',
+    help: 'username for reporting metrics to InfluxDB database. Environment: RAPTOR_USERNAME',
+    default: 'root',
+    transform: utils.fromEnvironment('RAPTOR_USERNAME', 'root')
+  })
+  .option('password', {
+    metavar: '<password>',
+    help: 'password for reporting metrics to InfluxDB database. Environment: RAPTOR_PASSWORD',
+    default: 'root',
+    transform: utils.fromEnvironment('RAPTOR_PASSWORD', 'root')
+  })
+  .option('database', {
+    metavar: '<database>',
+    help: 'name of InfluxDB database for reporting metrics. Environment: RAPTOR_DATABASE',
+    default: '',
+    transform: utils.fromEnvironment('RAPTOR_DATABASE', '')
+  })
+  .option('log', {
+    metavar: '<path>',
+    help: 'path to store historical test metrics. Environment: RAPTOR_LOG',
+    default: defaultLog,
+    transform: utils.compose(utils.toAbsolute, utils.fromEnvironment('RAPTOR_LOG', defaultLog))
+  })
+  .option('output', {
+    metavar: '<mode>',
+    help: 'output mode: normal or quiet. Environment: RAPTOR_OUTPUT',
+    default: 'normal',
+    transform: utils.fromEnvironment('RAPTOR_OUTPUT', 'normal')
   });
 
 parser.parse();
