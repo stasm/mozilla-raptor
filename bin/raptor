@@ -57,6 +57,7 @@ parent
   })
   .option('launchDelay', {
     metavar: '<milliseconds>',
+    full: 'launch-delay',
     help: 'time to wait between subsequent application launches',
     default: 10000,
     transform: utils.toInt,
@@ -64,6 +65,7 @@ parent
   })
   .option('memoryDelay', {
     metavar: '<milliseconds>',
+    full: 'memory-delay',
     help: 'time to wait before capturing memory after application fully loaded',
     default: 0,
     transform: utils.toInt,
