@@ -61,6 +61,6 @@
       "email": "rwood@mozilla.com"
     }
   ],
-  "repository": "eliperelman/mozilla-raptor",
+  "repository": "mozilla-b2g/mozilla-raptor",
   "scripts": {}
 }
