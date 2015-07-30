@@ -1,6 +1,6 @@
 {
   "name": "@mozilla/raptor",
-  "version": "1.4.2",
+  "version": "1.4.3",
   "preferGlobal": true,
   "description": "CLI tool for Firefox OS Gaia performance tests",
   "keywords": [
