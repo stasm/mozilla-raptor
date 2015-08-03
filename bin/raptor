@@ -144,7 +144,7 @@ parent
   .option('marionetteHost', {
     full: 'marionette-host',
     metavar: '<host>',
-    help: 'connect to marionette on a remote host. tip: use with --marionette-port. Envrionment: MARIONETTE_HOST',
+    help: 'connect to marionette on a remote host. tip: use with --marionette-port. Environment: MARIONETTE_HOST',
     default: 'localhost',
     transform: utils.fromEnvironment('MARIONETTE_HOST', 'localhost')
   })
@@ -155,6 +155,14 @@ parent
     default: 2828,
     transform: utils.compose(utils.toInt, utils.fromEnvironment('MARIONETTE_PORT', 2828)),
     callback: utils.validate('marionettePort', utils.validator.isInt)
+  })
+  .option('forwardPort', {
+    full: 'forward-port',
+    metavar: '<port>',
+    help: 'forward an adb port to the --marionette-port.',
+    default: '',
+    transform: utils.toInt,
+    callback: utils.validate('forwardPort', utils.validator.isInt)
   })
   .option('host', {
     metavar: '<host>',
