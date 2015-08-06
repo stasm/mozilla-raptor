@@ -78,6 +78,22 @@ parent
     transform: utils.toInt,
     callback: utils.validate('time', utils.validator.isInt)
   })
+  .option('scriptTimeout', {
+    metavar: '<milliseconds>',
+    full: 'script-timeout',
+    help: 'time to wait when running scripts via marionette',
+    default: 10000,
+    transform: utils.toInt,
+    callback: utils.validate('scriptTimeout', utils.validator.isInt)
+  })
+  .option('connectionTimeout', {
+    metavar: '<milliseconds>',
+    full: 'connection-timeout',
+    help: 'marionette driver tcp connection timeout',
+    default: 2000,
+    transform: utils.toInt,
+    callback: utils.validate('connectionTimeout', utils.validator.isInt)
+  })
   .callback(function(options) {
     raptor(options);
   });
