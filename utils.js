@@ -131,3 +131,13 @@ var readLog = module.exports.readLog = function(log) {
     });
   });
 };
+
+/**
+ * Pad a number with up to 6 leading zeros
+ * @param {number} number Positive integer to pad
+ * @returns {string}
+ */
+var zeroPad = module.exports.zeroPad = function(number) {
+  return ('000000' + number)
+    .substr(number.toString().length);
+};

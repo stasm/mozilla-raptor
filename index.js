@@ -48,8 +48,8 @@ var complete = function(phase) {
     return Promise.resolve();
   }
 
-  return phase
-    .reportTest()
+  return Promise
+    .resolve()
     .then(function() {
       return phase.device.log.stop();
     })
@@ -76,16 +76,6 @@ var handleError = function(phase, err) {
  * @param {function} callback
  */
 var raptor = function(options) {
-  // If registering a new runner: { phase: String, path: ModulePath }.
-  // If registering a new runner there is no need to add 'phase' in options.
-  if (options.runner) {
-    var phase = options.runner.phase;
-    var path = options.runner.path;
-
-    phases.register(phase, path);
-    options.phase = options.runner.phase;
-  }
-
   // Here we officially require the test file
   require(options.nameOrPath);
 
