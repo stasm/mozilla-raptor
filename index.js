@@ -1,10 +1,8 @@
 var Promise = require('promise');
 var fs = require('fs');
 var ndjson = require('ndjson');
-var influent = require('influent');
 var phases = require('./lib/phases');
 var database = require('./lib/reporter/database');
-var Phase = require('./lib/phases/phase');
 
 // Each test run can generate many event handlers, so let's shut off Node's
 // too-many-listeners warning.
