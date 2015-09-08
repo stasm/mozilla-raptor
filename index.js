@@ -1,7 +1,10 @@
 var Promise = require('promise');
-var utils = require('./utils');
+var fs = require('fs');
+var ndjson = require('ndjson');
+var influent = require('influent');
 var phases = require('./lib/phases');
 var database = require('./lib/reporter/database');
+var Phase = require('./lib/phases/phase');
 
 // Each test run can generate many event handlers, so let's shut off Node's
 // too-many-listeners warning.
@@ -98,7 +101,7 @@ var raptor = function(options) {
       });
 
       phase.once('end', function() {
-        phase.logStats();
+        phase.logStats(phase.calculateStats());
         return complete(phase);
       });
 
@@ -126,14 +129,20 @@ module.exports.report = function(options) {
     handleError(null, new Error('--database is required for data submission'));
   }
 
-  var report = database(options);
+  return new Promise(function(resolve, reject) {
+    var report = database(options);
+    var points = [];
 
-  return utils
-    .readLog(options.log)
-    .then(function(data) {
-      return Promise.all(data.map(report));
-    })
-    .catch(function(err) {
-      handleError(null, err);
-    });
+    fs
+      .createReadStream(options.metrics)
+      .pipe(ndjson.parse())
+      .on('data', function (data) {
+        points = points.concat(data);
+      })
+      .on('end', function() {
+        report(points)
+          .then(resolve)
+          .catch(reject);
+      });
+  });
 };

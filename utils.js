@@ -1,10 +1,10 @@
-var GAIA_ORIGIN = '.gaiamobile.org';
-
 var path = require('path');
 var fs = require('fs');
 var Promise = require('promise');
 var newline = require('os').EOL;
 var validator = module.exports.validator = require('validator');
+
+var GAIA_ORIGIN = '.gaiamobile.org';
 
 /**
  * Recursive merge of properties from one object to another

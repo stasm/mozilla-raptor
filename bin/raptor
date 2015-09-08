@@ -5,7 +5,7 @@ var path = require('path');
 var raptor = require('..');
 var utils = require('../utils');
 
-var defaultLog = path.join(process.cwd(), 'raptor.log');
+var defaultMetricsFile = path.join(process.cwd(), 'metrics.ldjson');
 var namedTests = [
   '    coldlaunch\t\tcold-launch lifecycle of an application from appLaunch to fullyLoaded',
   '    reboot\t\tdevice reboot lifecycle from device power on until System/Homescreen fullyLoaded',
@@ -94,17 +94,22 @@ parent
     transform: utils.toInt,
     callback: utils.validate('connectionTimeout', utils.validator.isInt)
   })
+  .option('logcat', {
+    metavar: '<path>',
+    help: 'write the output from `adb logcat` to a file',
+    transform: utils.toAbsolute
+  })
   .callback(function(options) {
     raptor(options);
   });
 
 parent
   .command('submit')
-  .help('Submit a Raptor JSON log to an InfluxDB database')
-  .option('log', {
+  .help('Submit a Raptor metrics file to an InfluxDB database')
+  .option('metrics', {
     metavar: '<path>',
     position: 1,
-    help: 'path to Raptor-compatible, line-separated JSON log file',
+    help: 'path to LDJSON metrics file',
     required: true,
     transform: utils.toAbsolute
   })
@@ -116,7 +121,11 @@ parent
           return;
         }
 
-        console.log('[Database Submission] Success for: %s', options.log);
+        console.log('[Database Submission] Success for: %s', options.metrics);
+      })
+      .catch(function(err) {
+        console.error(err.stack || err);
+        process.exit(1);
       });
   });
 
@@ -165,7 +174,7 @@ parent
     full: 'adb-port',
     metavar: '<port>',
     help: 'port for connecting to a device on a remote host. use with --adb-host. Environment: ADB_PORT',
-    default: '',
+    default: 0,
     transform: utils.compose(utils.toInt, utils.fromEnvironment('ADB_PORT', '')),
     callback: utils.validate('adbPort', utils.validator.isInt)
   })
@@ -188,7 +197,7 @@ parent
     full: 'forward-port',
     metavar: '<port>',
     help: 'forward an adb port to the --marionette-port.',
-    default: '',
+    default: 0,
     transform: utils.toInt,
     callback: utils.validate('forwardPort', utils.validator.isInt)
   })
@@ -223,17 +232,25 @@ parent
     default: '',
     transform: utils.fromEnvironment('RAPTOR_DATABASE', '')
   })
-  .option('log', {
+  .option('metrics', {
     metavar: '<path>',
-    help: 'path to store historical test metrics. Environment: RAPTOR_LOG',
-    default: defaultLog,
-    transform: utils.compose(utils.toAbsolute, utils.fromEnvironment('RAPTOR_LOG', defaultLog))
+    help: 'path to store historical test metrics. Environment: RAPTOR_METRICS',
+    default: defaultMetricsFile,
+    transform: utils.compose(utils.toAbsolute, utils.fromEnvironment('RAPTOR_METRICS', defaultMetricsFile))
   })
   .option('output', {
     metavar: '<mode>',
-    help: 'output mode: normal or quiet. Environment: RAPTOR_OUTPUT',
-    default: 'normal',
-    transform: utils.fromEnvironment('RAPTOR_OUTPUT', 'normal')
+    help: 'console output mode. Environment: RAPTOR_OUTPUT',
+    choices: ['console', 'json', 'quiet'],
+    default: 'console',
+    transform: utils.fromEnvironment('RAPTOR_OUTPUT', 'console')
+  })
+  .option('batch', {
+    metavar: '<count>',
+    help: 'batch database requests to <count> number of records',
+    default: 5000,
+    transform: utils.toInt,
+    callback: utils.validate('batch', utils.validator.isInt)
   });
 
 parser.parse();
