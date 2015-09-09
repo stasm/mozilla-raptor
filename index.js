@@ -134,7 +134,7 @@ module.exports.report = function(options) {
     fs
       .createReadStream(options.metrics)
       .pipe(ndjson.parse())
-      .on('data', function (data) {
+      .on('data', function(data) {
         points = points.concat(data);
       })
       .on('end', function() {
