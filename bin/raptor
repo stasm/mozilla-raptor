@@ -2,10 +2,16 @@
 
 var parser = require('nomnom');
 var path = require('path');
+var fs = require('fs');
+var url = require('url');
+var open = require('open');
 var raptor = require('..');
 var utils = require('../utils');
 
 var defaultMetricsFile = path.join(process.cwd(), 'metrics.ldjson');
+var uuid = fs.readFileSync(path.join(__dirname, '..', '.uuid'), {
+  encoding: 'utf8'
+});
 var namedTests = [
   '    coldlaunch\t\tcold-launch lifecycle of an application from appLaunch to fullyLoaded',
   '    reboot\t\tdevice reboot lifecycle from device power on until System/Homescreen fullyLoaded',
@@ -130,6 +136,30 @@ parent
   });
 
 parent
+  .command('open')
+  .help('Launch the dashboards in the browser')
+  .callback(function(options) {
+    ['database', 'dashboard', 'uuid']
+      .forEach(function(option) {
+        if (!options[option]) {
+          console.error('--' + option + ' is required to launch dashboard');
+          process.exit(1);
+        }
+      });
+
+    var site = url.parse(options.dashboard);
+
+    if (!site.query) {
+      site.query = {};
+    }
+
+    site.query.uuid = options.uuid;
+    site.query.source = options.database;
+
+    open(url.format(site));
+  });
+
+parent
   .option('version', {
     flag: true,
     abbr: 'v',
@@ -251,6 +281,17 @@ parent
     default: 5000,
     transform: utils.toInt,
     callback: utils.validate('batch', utils.validator.isInt)
+  })
+  .option('uuid', {
+    metavar: '<id>',
+    help: 'unique identifier of user creating visualization records',
+    default: uuid
+  })
+  .option('dashboard', {
+    metavar: '<url>',
+    help: 'URL to Raptor dashboard. Environment: RAPTOR_DASHBOARD',
+    default: 'http://raptor.mozilla.org',
+    transform: utils.fromEnvironment('RAPTOR_DASHBOARD', 'http://raptor.mozilla.org')
   });
 
 parser.parse();
