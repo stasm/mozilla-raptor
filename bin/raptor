@@ -136,6 +136,18 @@ parent
     default: '',
     transform: utils.compose(utils.toAbsolute, utils.fromEnvironment('RAPTOR_CONFIG', ''))
   })
+  .option('homescreen', {
+    metavar: '<origin>',
+    default: 'verticalhome.gaiamobile.org',
+    help: 'specify the origin or gaiamobile.org prefix of an application that is the device homescreen',
+    transform: utils.toFQDN
+  })
+  .option('system', {
+    metavar: '<origin>',
+    default: 'system.gaiamobile.org',
+    help: 'specify the origin or gaiamobile.org prefix of an application that is the system application',
+    transform: utils.toFQDN
+  })
   .option('serial', {
     metavar: '<serial>',
     help: 'target a specific device for testing. Environment: ANDROID_SERIAL',
