@@ -48,7 +48,6 @@
     "stats-lite": "^1.0.3",
     "temp": "^0.8.3",
     "unzip": "^0.1.11",
-    "uuid": "^2.0.1",
     "validator": "^3.40.1",
     "xregexp": "^2.0.0"
   },
@@ -66,7 +65,5 @@
     }
   ],
   "repository": "mozilla-b2g/mozilla-raptor",
-  "scripts": {
-    "postinstall": "./set-uuid.js"
-  }
+  "scripts": {}
 }
