@@ -3,8 +3,6 @@
 var parser = require('nomnom');
 var path = require('path');
 var fs = require('fs');
-var url = require('url');
-var open = require('open');
 var raptor = require('..');
 var utils = require('../utils');
 
