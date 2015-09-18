@@ -233,6 +233,12 @@ parent
     default: '',
     transform: utils.fromEnvironment('RAPTOR_DATABASE', '')
   })
+  .option('protocol', {
+    metavar: '<protocol>',
+    help: 'Protocol used to connect to InfluxDB database for reporting metrics. Environment: RAPTOR_PROTOCOL',
+    default: 'http',
+    transform: utils.fromEnvironment('RAPTOR_PROTOCOL', 'http')
+  })
   .option('metrics', {
     metavar: '<path>',
     help: 'path to store historical test metrics. Environment: RAPTOR_METRICS',
