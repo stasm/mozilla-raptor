@@ -1,10 +1,8 @@
-var GAIA_ORIGIN = '.gaiamobile.org';
-
 var path = require('path');
-var fs = require('fs');
 var Promise = require('promise');
-var newline = require('os').EOL;
 var validator = module.exports.validator = require('validator');
+
+var GAIA_ORIGIN = '.gaiamobile.org';
 
 /**
  * Recursive merge of properties from one object to another
@@ -104,30 +102,11 @@ var findTest = module.exports.findTest = function(nameOrPath) {
 };
 
 /**
- * Read a Raptor-generated log file back into JSON
- * @param {string} log path to newline-separated JSON log file
- * @returns {Promise}
+ * Pad a number with up to 6 leading zeros
+ * @param {number} number Positive integer to pad
+ * @returns {string}
  */
-var readLog = module.exports.readLog = function(log) {
-  return new Promise(function(resolve, reject) {
-    fs.readFile(log, { encoding: 'utf8' }, function(err, contents) {
-      if (err) {
-        return reject(err);
-      }
-
-      var data = [];
-
-      contents
-        .split(newline)
-        .forEach(function(line) {
-          if (!line) {
-            return;
-          }
-
-          data.push(JSON.parse(line));
-        });
-
-      resolve(data);
-    });
-  });
+var zeroPad = module.exports.zeroPad = function(number) {
+  return ('000000' + number)
+    .substr(number.toString().length);
 };

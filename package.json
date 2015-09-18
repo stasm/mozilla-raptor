@@ -1,6 +1,7 @@
 {
   "name": "@mozilla/raptor",
-  "version": "1.7.0",
+  "version": "2.0.0",
+  "private": true,
   "preferGlobal": true,
   "description": "CLI tool for Firefox OS Gaia performance tests",
   "keywords": [
@@ -29,7 +30,7 @@
     "compose-function": "^2.0.0",
     "debug": "^2.2.0",
     "deepmerge": "^0.2.10",
-    "influx": "^3.0.0",
+    "influent": "^0.3.1",
     "marionette-apps": "0.3.13",
     "marionette-client": "1.7.6",
     "marionette-content-script": "0.0.4",
@@ -38,6 +39,7 @@
     "marionette-plugin-forms": "0.0.4",
     "marionette-settings-api": "0.1.0",
     "markdown-table": "^0.4.0",
+    "ndjson": "^1.4.1",
     "nomnom": "mozilla-b2g/nomnom",
     "promise": "^6.1.0",
     "request": "2.33.0",

@@ -1,5 +1,6 @@
 setup(function(options) {
-  options.phase = 'cold';
+  options.test = 'cold-launch';
+  options.phase = 'cold-launch';
 });
 
 afterEach(function(phase) {

@@ -1,5 +1,6 @@
 logs
 *.log
+*.ldjson
 pids
 *.pid
 *.seed
